@@ -1,0 +1,87 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "Michaela Miranda"
+date: "August 9, 2019"
+output: html_document
+---
+# Summary
+In this practical machine learning project, how well a person carries out a specific activity will be predicted through data collected from  Jawbone Up, Nike FuelBand, and Fitbit. A random forest model was created with a validation accuracy of 99.90%, and used to predict the test set provided. 
+
+# Dataset
+Two datasets were provided for this project: one with 19,622 observations and the other with only 20. They both have the same number of columns, but where the other one contains the target variable, classe, the other contains an id. 
+```{r,warning=FALSE,message=FALSE}
+training<-read.csv("pml-training.csv")
+testing<-read.csv("pml-testing.csv")
+```
+
+# Packages
+The packages used in creating the predictive model are shown below: 
+```{r,warning=FALSE,message=FALSE}
+library(caret)
+library(randomForest)
+library(dplyr)
+```
+
+# Exploratory
+## Missing Values
+The number of missing observations must be determined in order to decide on which preprocessing and modeling techniques will be employed. The training dataset has over a million missing observations, while the testing only has 2,000. 
+```{r}
+sum(is.na(training))
+sum(is.na(testing))
+```
+
+# Preprocessing
+## Removing Unnecessary Variables
+The first two columns, X and user_name, were removed from both datasets, because they aren't necessary in predicting the outcomes. 
+```{r}
+training<-training[,-c(1,2)]
+testing<-testing[,-c(1,2)]
+```
+
+## Removing Columns with Zero Variance
+Columns with zero variance means that samples don't differ from each other, and thus, these columns are useless, and were removed. 
+```{r}
+near <- nearZeroVar(training, saveMetrics = T)
+training_clean <- training[, !near$nzv] 
+testing_clean <- testing[, !near$nzv]
+```
+
+## Impute Missing Values
+Missing values were imputed with column mean. However, for the testing data set, there were columns where all observations were missing, and thus, the mean couldn't be calculated. Since these columns were present when training, it must be kept, and thus, were imputed with 0. 
+```{r,warning=FALSE,message=FALSE}
+for(i in 1:ncol(training_clean)){
+  training_clean[is.na(training_clean[,i]), i] <- mean(training_clean[,i], 
+                                                       na.rm = TRUE)
+}
+for(i in 1:ncol(testing_clean)){
+  testing_clean[is.na(testing_clean[,i]), i] <- mean(testing_clean[,i], na.rm = TRUE)
+}
+testing_clean[testing_clean=='NaN']<-0
+```
+
+# Train/Validation Split
+In order to validate the results of the model trained, the training was split at 80/20, where 20% was reserved for validation. This was carried out with the code below. 
+```{r}
+set.seed(1234)
+inTrain <- createDataPartition(training_clean$classe,p=0.8,list=FALSE)
+train <- training_clean[inTrain,]
+validate <- training_clean[-inTrain,]
+```
+
+# Training a Random Forest Model
+A random forest model was trained using default parameters. The result of the first run shows an error rate of only 0.1%. 
+```{r,warning=FALSE,message=FALSE}
+model1<-randomForest(classe~.,data=train)
+model1
+```
+
+# Validating Model Results
+The trained model was used to predict the target outcomes of the validate dataset, the results of which are shown below, wherein the estimated accuracy is at 99.90%, thus, no further improvements will be made, and this will be the model used for predicting the cases in the test set.  
+```{r,warning=FALSE,message=FALSE}
+pred1<-predict(model1,validate[,-99],type="class")
+mean(pred1 == validate$classe)  
+table(pred1,validate$classe)
+```
+
+# Testing Model Results
+A score of 20/20 was obtained from the course project prediction quiz. 

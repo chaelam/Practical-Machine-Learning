@@ -262,7 +262,7 @@ validate &lt;- training_clean[-inTrain,]</code></pre>
 </div>
 <div id="training-a-random-forest-model" class="section level1">
 <h1>Training a Random Forest Model</h1>
-<p>A random forest model was trained using default parameters. The result of the first run shows an error rate of only 0.1%.</p>
+<p>Due to the possibility of multicollinearity, and for its robustness even with its simplicity, random forest modeling algorithm was chosen. A random forest model was trained using default parameters. The result of the first run shows an error rate of only 0.1%.</p>
 <pre class="r"><code>model1&lt;-randomForest(classe~.,data=train)
 model1</code></pre>
 <pre><code>## 

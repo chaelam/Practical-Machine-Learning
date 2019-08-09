@@ -69,7 +69,7 @@ validate <- training_clean[-inTrain,]
 ```
 
 # Training a Random Forest Model
-A random forest model was trained using default parameters. The result of the first run shows an error rate of only 0.1%. 
+Due to the possibility of multicollinearity, and for its robustness even with its simplicity, random forest modeling algorithm was chosen. A random forest model was trained using default parameters. The result of the first run shows an error rate of only 0.1%. 
 ```{r,warning=FALSE,message=FALSE}
 model1<-randomForest(classe~.,data=train)
 model1
